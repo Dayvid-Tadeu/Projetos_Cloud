@@ -1,0 +1,116 @@
+- hosts: all
+  handlers:
+    - name: "restart apache"
+      service:
+        name: apache2
+        state: restarted
+      become: yes
+
+  tasks:   
+    - name: "Instala pacotes"
+      apt:  # Vai rodar (sudo apt get install) pegando os itens abaixo
+            # instalando um por um
+        name: "{{ item }}"
+        state: latest
+      become: yes # roda com sudo
+      with_items:
+        - php7.2
+        - apache2
+        - libapache2-mod-php7.2 # Para que o Apache rode o PHP
+        - php-mysql
+        - php-curl # para que acesse o mysql e possa fazer GET via http
+        - mysql-server
+        - python3-pycurl
+        - python3-mysqldb
+        - unzip # Para descompactar algumas informações
+
+    # FAZENDO O DOWNLOAD DO WORDPRESS
+    - name: "Fazendo downlaod do wordpress"
+      get_url:
+        url: "https://br.wordpress.org/latest-pt_BR.tar.gz"
+        dest: "/tmp/wordpress.tar.gz"
+    
+    - name: "Fazendo descompactação dos arquivos do WP"
+      unarchive:
+        src: "/tmp/wordpress.tar.gz" # local do Arquivo no Servidor
+        dest: "/var/www" # É a pasta padrão do apache
+        remote_src: yes
+      become: yes
+    # CRIANDO ARQUIVO DE CONEXÃO (wp-config)
+    - name: "Copia arquivo WP"
+      copy:
+        src: '/var/www/wordpress/wp-config-sample.php'
+        dest: '/var/www/wordpress/wp-config.php'
+        remote_src: yes
+      become: yes
+
+    - name: "Configura o wp-config com as senhas"
+      replace:
+        path: '/var/www/wordpress/wp-config.php'
+        regexp: "{{ item.regex }}"
+        replace: "{{ item.value }}"
+      with_items:
+        - { regex: 'nome_do_banco_de_dados_aqui', value: 'banco_wordpress' }
+        - { regex: 'nome_de_usuario_aqui', value: 'root' }
+        - { regex: 'senha_aqui', value: 'root' }
+      become: yes
+
+    # ARRUMA O APACHE E RESTARTA ELE
+    - name: "Trocando pasta do render do apache para o wordpress"
+      copy:
+        src: "apache/000-default.conf"
+        dest: "/etc/apache2/sites-available/000-default.conf"
+      become: yes
+      notify:
+        - "restart apache"
+  
+    - name: "Levanta serviço do mysql"
+      become: yes
+      service:
+        name: mysql
+        state: started
+
+    - name: "Criando senha root mysql"
+      become: yes
+      mysql_user:
+        name: root
+        host: localhost
+        password: root
+        priv: "*.*:ALL,GRANT"
+  
+    - name: "Cria o banco de dados MySQL"
+      mysql_db:
+        name: banco_wordpress
+        login_user: root
+        login_password: root
+        state: present
+
+    - name: "Copiando novo tema WP"
+      copy:
+        src: "thema/generatepress.3.0.3.zip"
+        dest: "/tmp/generatepress.3.0.3.zip"
+      become: yes
+
+    - name: "Descompactar na pasta do thema"
+      unarchive:
+        src: "/tmp/generatepress.3.0.3.zip"
+        dest: "/var/www/wordpress/wp-content/themes/"
+        remote_src: yes
+      become: yes
+
+    - name: "Copiando novo plugin new relic WP"
+      copy:
+        src: "plugins/rt-newrelic-browser.1.0.5.zip"
+        dest: "/tmp/rt-newrelic-browser.1.0.5.zip"
+      become: yes
+
+    - name: "Descompactar na pasta do plugins o newrelic"
+      unarchive:
+        src: "/tmp/rt-newrelic-browser.1.0.5.zip"
+        dest: "/var/www/wordpress/wp-content/plugins/"
+        remote_src: yes
+      become: yes
+
+    # - name: "Instalando newrelic server metrics"
+    #   shell: "curl -Ls https://raw.githubusercontent.com/newrelic/newrelic-cli/master/scripts/install.sh | bash && sudo NEW_RELIC_API_KEY=NRAK-MVTZUUU8ML7BTBXJVFEPJF46TBQ NEW_RELIC_ACCOUNT_ID=1134562 /usr/local/bin/newrelic install"
+      

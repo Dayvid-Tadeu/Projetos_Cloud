@@ -1,0 +1,26 @@
+1 - FROM node
+2 - WORKDIR /app
+3 - COPY package*.json ./
+4 - RUN npm install
+5 - COPY . .
+6 - EXPOSE 8080
+7 - CMD ["node", "server.js"]
+
+
+1 - Qual Imagem vai ser criada
+2 - Criação de Uma pasta dentro da Imagem
+3 - Copia apenas os arquivos (.json), caso faça alguma ateração só eles mudam na imagem
+4 - Faz a Instalação
+5 - Copia o restante dos arquivos
+6 - Expõe a porta 8080 (Está na linha 50 do arquivo server.js)
+7 - Faz a conclusão
+
+RODAR A CRIAÇÃO DA IMAGEM:
+docker image build -t conversao-temperatura .
+docker image build -t dvdtla/conversao-temperatura:v1 .
+
+PARA LISTAR AS IMAGENS
+docker image ls
+
+PARA EXECUTAR A IMAGEM
+docker container run -d -p 8080:8080 conversao-temperatura

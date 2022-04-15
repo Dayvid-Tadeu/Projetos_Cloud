@@ -1,0 +1,86 @@
+--- AWS ---
+-> Acesse sua conta -> Console de Gerenciamento AWS
+-> Executar Instancia
+
+1-SELECIONE AMI
+Escolha Amazon Linux 2 AMI(HVM) Kernel 5.10 SSD Volume Type e Clique em SELECIONAR
+
+2 - ESCOLHER INSTANCIA
+Escolha T2 micro e clique em PRÓXIMO:CONFIGURE OS DETALHES DA INTANCIA
+
+3 - CONFIGURAR INSTANCIA
+Vá até o final da página e em: DETALHES AVANÇADOS onde está DADOS DO USUARIO.
+Insira as informações do txt-> USER-DATA-JENKINS
+Clique no botão PROXIMO:ADCIONAR ARMAZENAMENTO
+
+4 - ADCIONAR ARMAZENAMENTO
+Se quiser, pode mudar o tamanho para 10(GIB)
+Clique no botão PRÓXIMO:ADCIONAR TAGS
+
+5 - ADCIONAR TAGS
+Chave: Name e Valor: jenkins
+Clique no botão PRÓXIMO:CONFIGURE SECURITY GROUP
+
+6 - CONFIGURE O SECURITY GROUP
+Em NOME DO GRUPO DE SEGURANÇA coloque um nome como: dcw-tudo-liberado
+Abaixo em TIPO selecione TODO O TRAFEGO
+OBS:Não estou selecionando uma porta em Especifico
+OBS:Não estou selecionando um IP específico.
+Clique em VERIFICAR E ATIVAR
+
+7 - ANÁLISE 
+Clique em EXECUTAR
+
+SELECIONE UM PAR DE CHAVES OU CRIAR UM NOVO PAR
+Deixe em RSA
+Nome do par de chaves coloque o nome que quiser
+Faz o Download e salve
+O Arquivo é uma asenha de acesso para caso tenha algum problema
+Clique em EXECUTAR INSTANCIA
+EXIBIR INSTANCIA
+
+Execute a Instancia Criada e copie o IPV4 Publico e em uma nova aba no seu navegador
+cole o ip:8080(é a porta padrão do Jenkins) 
+No AWS com a instancia seleciona clique em COMNECTAR
+Dê um:
+-> sudo cat /var/lib/jenkins/secrets/initialAdminPassword (Mostrado na tela inicial do navegador do passo acima).
+Com a senha de admin, copiar e colar para a tela inicial do navegador.
+selecione plugins para instalação e escolha o GitHub e Git Parameter e INSTALL.
+
+
+----------------APLICAÇÃO DE CHAVE--------------------
+-> MOBAXTERM
+------------------------------------------------------
+---- DOCKER ----
+
+Criaremos outra instancia seguindo os mesmos passos acima, porém:
+No passo 1 Usaremos UBUNTU SERVER 20.04 LTS.
+No passo 3 Usaremos as informações do (user-data-docker.txt) em Dados do usuário.
+No passo 6 Não criaremos um grupo de segurança pois já foi criado,
+Clique em :SELECIONAR UM GRUPO DE SEGURANÇA EXISTENTE bastando apenas selecioná-lo.
+
+Para Conectar use Conexão de instância do EC2
+Copie o DNS publico descrito e cole no MOBA em SESSION -> SSH -> Remote Host e cole a informação
+Specify Username (UBUNTU)
+na aba Advanced SSH settings.
+Use private key cole a chave que baixamos do AWS com extensão (.pem)
+Clique em OK
+Abrirá uma tela com o LINUX.
+OBS: Lembrando que o DOCKER já tá instalado quando colocamos as informações no passo 3
+
+Criaremos a imagem no DOCKER:
+obs: VC tem de estar na pasta com o linux e ele usará o dockerfile.
+
+CRIANDO A IMAGEM
+ -> docker build -t dcw-app .
+
+EXECUTANDO A IMAGEM
+ -> docker run -itd -p 80:3000 dcw-app
+
+EXECUTANDO NO NAVEGADOR
+ -> http://localhost:80
+
+
+ACIMA EM AWS É MOSTRADO COMO CRIAR UMA INSTANCIA DE FORMA GERAL.
+EM DOCKER MOSTRO REALMENTE COMO EXECUTAR A APLICAÇÃO REFERENTE AO COVID-19, É NESTA ULTIMA
+QUE A "MÁGICA" ACONTECE.

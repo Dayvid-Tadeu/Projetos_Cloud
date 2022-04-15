@@ -1,0 +1,15 @@
+TERRAFORM:
+
+ - Uma máquina Virtual
+ - Uma Security Group
+ - Uma Bucket
+
+
+ANSIBLE (Arquivo de Provisionamento):
+
+ - Instala PhP
+ - Instala o Apache
+ - Instala e Cria um BD MySQL
+ - Alguns Pacotes Python
+ - Instala o WordPress
+ - Instala um tema para o WordPress
